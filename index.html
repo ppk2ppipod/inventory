@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>우리집 재고관리</title>
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082060.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+    
+    header {
+      position: sticky; top: 0; background: var(--card); z-index: 10;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
+    .btn-add {
+      background: var(--primary); color: white; border: none;
+      padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
+    }
+
+    .search-box { padding: 12px 20px; background: var(--card); }
+    .search-input {
+      width: 100%; padding: 10px 14px; border-radius: 10px;
+      border: 1px solid var(--border); font-size: 15px; outline: none; background: #f1f5f9;
+    }
+    .search-input:focus { border-color: var(--primary); background: #fff; }
+
+    .item-list { padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .item-card {
+      background: var(--card); border-radius: 12px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .item-info { flex: 1; }
+    .item-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .item-date { font-size: 12px; color: var(--muted); }
+    .badge-out { font-size: 11px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; }
+
+    .stepper { display: flex; align-items: center; gap: 8px; }
+    .step-btn {
+      width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border);
+      background: #f8fafc; font-size: 18px; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-btn:active { background: #e2e8f0; }
+    .step-qty { min-width: 28px; text-align: center; font-size: 16px; font-weight: 700; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100;
+    }
+    .modal { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 340px; }
+    .modal h2 { font-size: 18px; margin-bottom: 16px; }
+    .modal input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; font-size: 15px; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 10px; }
+    .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
+    .btn-confirm { background: var(--primary); color: white; }
+    .btn-cancel { background: #f1f5f9; color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏠 우리집 재고</h1>
+    <button class="btn-add" onclick="openAddModal()">+ 물품추가</button>
+  </header>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 물품명 검색 (가나다순)" oninput="renderList()">
+  </div>
+
+  <div class="item-list" id="itemList">
+    <div style="text-align:center; padding: 40px; color: var(--muted);">데이터를 불러오는 중...</div>
+  </div>
+
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <h2>새 물품 등록</h2>
+      <input type="text" id="newName" placeholder="물품명 (예: 타이레놀)">
+      <input type="number" id="newQty" placeholder="초기 수량" value="1" min="0">
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeAddModal()">취소</button>
+        <button class="btn-confirm" onclick="addItem()">등록</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DB_URL = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items.json";
+
+    let items = {};
+
+    function getToday() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}.${mm}.${dd}`;
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch(DB_URL);
+        items = await res.json() || {};
+        renderList();
+      } catch(e) {
+        console.error("로드 실패:", e);
+      }
+    }
+
+    async function updateItem(id, name, qty) {
+      if(qty < 0) qty = 0;
+      const today = getToday();
+      items[id] = { name: name, qty: qty, date: today };
+      renderList();
+
+      await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: name, qty: qty, date: today })
+      });
+    }
+
+    async function addItem() {
+      const nameInput = document.getElementById('newName');
+      const qtyInput = document.getElementById('newQty');
+      const name = nameInput.value.trim();
+      const qty = parseInt(qtyInput.value, 10) || 0;
+
+      if(!name) {
+        alert("물품명을 입력해주세요.");
+        return;
+      }
+
+      const exists = Object.values(items).some(i => i.name.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, ''));
+      if(exists) {
+        alert(`'${name}'은(는) 이미 등록되어 있는 물품입니다!`);
+        return;
+      }
+
+      const id = 'item_' + Date.now();
+      const today = getToday();
+      
+      items[id] = { name: name, qty: qty, date: today };
+      closeAddModal();
+      renderList();
+
+      await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: name, qty: qty, date: today })
+      });
+
+      nameInput.value = '';
+      qtyInput.value = '1';
+    }
+
+    function renderList() {
+      const listEl = document.getElementById('itemList');
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      let sorted = Object.entries(items).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'));
+
+      if(query) {
+        sorted = sorted.filter(([id, data]) => data.name.toLowerCase().includes(query));
+      }
+
+      if(sorted.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">등록된 물품이 없습니다.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = sorted.map(([id, data]) => `
+        <div class="item-card">
+          <div class="item-info">
+            <div class="item-name">
+              ${data.name}
+              ${data.qty === 0 ? '<span class="badge-out">품절</span>' : ''}
+            </div>
+            <div class="item-date">최종 확인: ${data.date || getToday()}</div>
+          </div>
+          <div class="stepper">
+            <button class="step-btn" onclick="changeQty('${id}', -1)">-</button>
+            <span class="step-qty">${data.qty}</span>
+            <button class="step-btn" onclick="changeQty('${id}', 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function changeQty(id, delta) {
+      if(!items[id]) return;
+      const newQty = (items[id].qty || 0) + delta;
+      updateItem(id, items[id].name, newQty);
+    }
+
+    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    loadData();
+    setInterval(loadData, 4000);
+  </script>
+</body>
+</html>
