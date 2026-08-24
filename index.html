@@ -17,6 +17,7 @@
       --border: #e2e8f0;
       --loc-bg: #f1f5f9;
       --loc-text: #475569;
+      --danger: #ef4444;
     }
     * { 
       box-sizing: border-box; 
@@ -30,23 +31,31 @@
     
     header {
       position: sticky; top: 0; background: var(--card); z-index: 10;
-      padding: 16px 20px; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
     }
-    header h1 { font-size: 19px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; }
+    header h1 { font-size: 17px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap; }
+    .header-btns { display: flex; gap: 6px; }
     .btn-add {
       background: var(--primary); color: white; border: none;
-      padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
+      padding: 7px 11px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-out-filter {
+      background: #f1f5f9; color: var(--muted); border: 1px solid var(--border);
+      padding: 7px 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-out-filter.active {
+      background: #fee2e2; color: #b91c1c; border-color: #fca5a5;
     }
 
-    .search-box { padding: 12px 20px; background: var(--card); }
+    .search-box { padding: 12px 16px; background: var(--card); }
     .search-input {
       width: 100%; padding: 10px 14px; border-radius: 10px;
       border: 1px solid var(--border); font-size: 15px; outline: none; background: #f1f5f9;
     }
     .search-input:focus { border-color: var(--primary); background: #fff; }
 
-    .item-list { padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .item-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
     .item-card {
       background: var(--card); border-radius: 12px; padding: 14px 16px;
       border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
@@ -73,6 +82,7 @@
     .step-btn:active { background: #e2e8f0; }
     .step-qty { min-width: 28px; text-align: center; font-size: 17px; font-weight: 700; }
 
+    /* Modal */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.5);
       display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100;
@@ -95,7 +105,10 @@
 
   <header>
     <h1>나봉❤️코봉 창고관리</h1>
-    <button class="btn-add" onclick="openAddModal()">+ 물품추가</button>
+    <div class="header-btns">
+      <button class="btn-out-filter" id="outFilterBtn" onclick="toggleOutFilter()">품절보기</button>
+      <button class="btn-add" onclick="openAddModal()">+ 추가</button>
+    </div>
   </header>
 
   <div class="search-box">
@@ -150,6 +163,7 @@
   <script>
     const DB_URL = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items.json";
     let items = {};
+    let isOnlyOutOfStock = false;
 
     function getAutoIcon(name) {
       const n = name.toLowerCase();
@@ -182,6 +196,7 @@
         const res = await fetch(DB_URL);
         items = await res.json() || {};
         updateLocationDatalist();
+        updateFilterButtonLabel();
         renderList();
       } catch(e) {
         console.error("로드 실패:", e);
@@ -199,11 +214,29 @@
       dl.innerHTML = Array.from(locations).map(loc => `<option value="${loc}">`).join('');
     }
 
+    function updateFilterButtonLabel() {
+      const outCount = Object.values(items).filter(i => (i.qty || 0) === 0).length;
+      const btn = document.getElementById('outFilterBtn');
+      btn.innerText = `품절(${outCount})`;
+    }
+
+    function toggleOutFilter() {
+      isOnlyOutOfStock = !isOnlyOutOfStock;
+      const btn = document.getElementById('outFilterBtn');
+      if (isOnlyOutOfStock) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+      renderList();
+    }
+
     async function updateItem(id, name, qty, location) {
       if(qty < 0) qty = 0;
       const today = getToday();
       const loc = location !== undefined ? location : (items[id].location || '');
       items[id] = { name: name, qty: qty, date: today, location: loc };
+      updateFilterButtonLabel();
       renderList();
       updateLocationDatalist();
 
@@ -238,6 +271,7 @@
       
       items[id] = { name: name, qty: qty, date: today, location: location };
       closeAddModal();
+      updateFilterButtonLabel();
       renderList();
       updateLocationDatalist();
 
@@ -257,6 +291,10 @@
 
       let sorted = Object.entries(items).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'));
 
+      if(isOnlyOutOfStock) {
+        sorted = sorted.filter(([id, data]) => (data.qty || 0) === 0);
+      }
+
       if(query) {
         sorted = sorted.filter(([id, data]) => 
           data.name.toLowerCase().includes(query) || (data.location && data.location.toLowerCase().includes(query))
@@ -264,7 +302,8 @@
       }
 
       if(sorted.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">등록된 물품이 없습니다.</div>`;
+        const msg = isOnlyOutOfStock ? '품절된 물품이 없습니다. 🎉' : '등록된 물품이 없습니다.';
+        listEl.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">${msg}</div>`;
         return;
       }
 
@@ -332,6 +371,7 @@
       if(confirm(`'${items[id].name}' 물품을 목록에서 삭제하시겠습니까?`)) {
         delete items[id];
         closeEditModal();
+        updateFilterButtonLabel();
         renderList();
         updateLocationDatalist();
 
