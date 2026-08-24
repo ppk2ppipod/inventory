@@ -24,7 +24,7 @@
       padding: 0; 
       font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif; 
       -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation; /* 사파리 더블탭 확대 방지 */
+      touch-action: manipulation;
     }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
     
@@ -33,7 +33,7 @@
       padding: 16px 20px; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center;
     }
-    header h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
+    header h1 { font-size: 19px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; }
     .btn-add {
       background: var(--primary); color: white; border: none;
       padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
@@ -73,7 +73,6 @@
     .step-btn:active { background: #e2e8f0; }
     .step-qty { min-width: 28px; text-align: center; font-size: 17px; font-weight: 700; }
 
-    /* Modal styles */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.5);
       display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100;
@@ -95,7 +94,7 @@
 <body>
 
   <header>
-    <h1>🏠 우리집 재고</h1>
+    <h1>나봉❤️코봉 창고관리</h1>
     <button class="btn-add" onclick="openAddModal()">+ 물품추가</button>
   </header>
 
@@ -152,7 +151,6 @@
     const DB_URL = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items.json";
     let items = {};
 
-    // 키워드 기반 자동 이모지 배정 함수
     function getAutoIcon(name) {
       const n = name.toLowerCase();
       if (/햇반|밥|쌀|즉석밥/.test(n)) return '🍚';
@@ -168,7 +166,7 @@
       if (/건전지|배터리/.test(n)) return '🔋';
       if (/고양이|사료|츄르|모래|캔/.test(n)) return '🐱';
       if (/과자|간식|초콜릿|사탕/.test(n)) return '🍪';
-      return '📦'; // 기본 아이콘
+      return '📦';
     }
 
     function getToday() {
