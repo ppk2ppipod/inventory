@@ -15,9 +15,17 @@
       --text: #0f172a;
       --muted: #64748b;
       --border: #e2e8f0;
-      --danger: #ef4444;
+      --loc-bg: #f1f5f9;
+      --loc-text: #475569;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif; 
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation; /* 사파리 더블탭 확대 방지 */
+    }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
     
     header {
@@ -44,31 +52,44 @@
       border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
       box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .item-info { flex: 1; }
-    .item-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .item-info { flex: 1; cursor: pointer; padding-right: 10px; }
+    .item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .item-icon { font-size: 18px; line-height: 1; }
+    .item-name { font-size: 16px; font-weight: 600; color: var(--text); }
+    .item-loc {
+      font-size: 11px; background: var(--loc-bg); color: var(--loc-text);
+      padding: 2px 7px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px;
+    }
+    .badge-out { font-size: 11px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
     .item-date { font-size: 12px; color: var(--muted); }
-    .badge-out { font-size: 11px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; }
 
-    .stepper { display: flex; align-items: center; gap: 8px; }
+    .stepper { display: flex; align-items: center; gap: 8px; user-select: none; }
     .step-btn {
-      width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border);
-      background: #f8fafc; font-size: 18px; font-weight: bold; cursor: pointer;
+      width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--border);
+      background: #f8fafc; font-size: 20px; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
+      touch-action: manipulation;
     }
     .step-btn:active { background: #e2e8f0; }
-    .step-qty { min-width: 28px; text-align: center; font-size: 16px; font-weight: 700; }
+    .step-qty { min-width: 28px; text-align: center; font-size: 17px; font-weight: 700; }
 
+    /* Modal styles */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.5);
       display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100;
     }
     .modal { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 340px; }
-    .modal h2 { font-size: 18px; margin-bottom: 16px; }
-    .modal input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; font-size: 15px; }
+    .modal h2 { font-size: 18px; margin-bottom: 14px; }
+    .modal label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; display: block; }
+    .modal input { 
+      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; font-size: 15px; outline: none;
+    }
+    .modal input:focus { border-color: var(--primary); }
     .modal-btns { display: flex; gap: 8px; margin-top: 10px; }
-    .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
+    .modal-btns button { flex: 1; padding: 11px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; font-size: 14px; }
     .btn-confirm { background: var(--primary); color: white; }
     .btn-cancel { background: #f1f5f9; color: var(--text); }
+    .btn-delete { background: #fee2e2; color: #b91c1c; }
   </style>
 </head>
 <body>
@@ -79,18 +100,24 @@
   </header>
 
   <div class="search-box">
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 물품명 검색 (가나다순)" oninput="renderList()">
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 물품명/장소 검색 (가나다순)" oninput="renderList()">
   </div>
 
   <div class="item-list" id="itemList">
     <div style="text-align:center; padding: 40px; color: var(--muted);">데이터를 불러오는 중...</div>
   </div>
 
+  <!-- 물품 등록 모달 -->
   <div class="modal-overlay" id="addModal">
     <div class="modal">
       <h2>새 물품 등록</h2>
-      <input type="text" id="newName" placeholder="물품명 (예: 타이레놀)">
-      <input type="number" id="newQty" placeholder="초기 수량" value="1" min="0">
+      <label>물품명</label>
+      <input type="text" id="newName" placeholder="예: 햇반, 타이레놀">
+      <label>보관 장소</label>
+      <input type="text" id="newLocation" list="locationList" placeholder="예: 팬트리 2단, 안방 서랍">
+      <label>초기 수량</label>
+      <input type="number" id="newQty" value="1" min="0">
+      
       <div class="modal-btns">
         <button class="btn-cancel" onclick="closeAddModal()">취소</button>
         <button class="btn-confirm" onclick="addItem()">등록</button>
@@ -98,10 +125,51 @@
     </div>
   </div>
 
+  <!-- 물품 수정 / 장소 변경 모달 -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h2>물품 정보 수정</h2>
+      <input type="hidden" id="editId">
+      <label>물품명</label>
+      <input type="text" id="editName">
+      <label>보관 장소</label>
+      <input type="text" id="editLocation" list="locationList" placeholder="보관 장소를 입력하세요">
+      <label>수량</label>
+      <input type="number" id="editQty" min="0">
+      
+      <div class="modal-btns">
+        <button class="btn-delete" onclick="deleteCurrentItem()">삭제</button>
+        <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+        <button class="btn-confirm" onclick="saveEditItem()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 자동완성용 공통 장소 데이터리스트 -->
+  <datalist id="locationList"></datalist>
+
   <script>
     const DB_URL = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items.json";
-
     let items = {};
+
+    // 키워드 기반 자동 이모지 배정 함수
+    function getAutoIcon(name) {
+      const n = name.toLowerCase();
+      if (/햇반|밥|쌀|즉석밥/.test(n)) return '🍚';
+      if (/라면|면|파스타|국수/.test(n)) return '🍜';
+      if (/워셔액|세차|자동차|와이퍼/.test(n)) return '🚗';
+      if (/타이레놀|약|감기|두통|소화제|비타민|영양제|연고|밴드|반창고/.test(n)) return '💊';
+      if (/휴지|화장지|롤티슈|물티슈|키친타올/.test(n)) return '🧻';
+      if (/세제|섬유유연제|샴푸|린스|바디워시|비누|치약|칫솔/.test(n)) return '🧴';
+      if (/물|생수|음료|커피|우유|차/.test(n)) return '💧';
+      if (/김|김치|반찬|참치|스팸|통조림/.test(n)) return '🥫';
+      if (/마스크/.test(n)) return '😷';
+      if (/쓰레기봉투|종량제|비닐봉투/.test(n)) return '🗑️';
+      if (/건전지|배터리/.test(n)) return '🔋';
+      if (/고양이|사료|츄르|모래|캔/.test(n)) return '🐱';
+      if (/과자|간식|초콜릿|사탕/.test(n)) return '🍪';
+      return '📦'; // 기본 아이콘
+    }
 
     function getToday() {
       const d = new Date();
@@ -115,29 +183,46 @@
       try {
         const res = await fetch(DB_URL);
         items = await res.json() || {};
+        updateLocationDatalist();
         renderList();
       } catch(e) {
         console.error("로드 실패:", e);
       }
     }
 
-    async function updateItem(id, name, qty) {
+    function updateLocationDatalist() {
+      const locations = new Set();
+      Object.values(items).forEach(item => {
+        if (item.location && item.location.trim()) {
+          locations.add(item.location.trim());
+        }
+      });
+      const dl = document.getElementById('locationList');
+      dl.innerHTML = Array.from(locations).map(loc => `<option value="${loc}">`).join('');
+    }
+
+    async function updateItem(id, name, qty, location) {
       if(qty < 0) qty = 0;
       const today = getToday();
-      items[id] = { name: name, qty: qty, date: today };
+      const loc = location !== undefined ? location : (items[id].location || '');
+      items[id] = { name: name, qty: qty, date: today, location: loc };
       renderList();
+      updateLocationDatalist();
 
       await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
         method: 'PUT',
-        body: JSON.stringify({ name: name, qty: qty, date: today })
+        body: JSON.stringify(items[id])
       });
     }
 
     async function addItem() {
       const nameInput = document.getElementById('newName');
       const qtyInput = document.getElementById('newQty');
+      const locInput = document.getElementById('newLocation');
+      
       const name = nameInput.value.trim();
       const qty = parseInt(qtyInput.value, 10) || 0;
+      const location = locInput.value.trim();
 
       if(!name) {
         alert("물품명을 입력해주세요.");
@@ -153,16 +238,18 @@
       const id = 'item_' + Date.now();
       const today = getToday();
       
-      items[id] = { name: name, qty: qty, date: today };
+      items[id] = { name: name, qty: qty, date: today, location: location };
       closeAddModal();
       renderList();
+      updateLocationDatalist();
 
       await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
         method: 'PUT',
-        body: JSON.stringify({ name: name, qty: qty, date: today })
+        body: JSON.stringify(items[id])
       });
 
       nameInput.value = '';
+      locInput.value = '';
       qtyInput.value = '1';
     }
 
@@ -173,7 +260,9 @@
       let sorted = Object.entries(items).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'));
 
       if(query) {
-        sorted = sorted.filter(([id, data]) => data.name.toLowerCase().includes(query));
+        sorted = sorted.filter(([id, data]) => 
+          data.name.toLowerCase().includes(query) || (data.location && data.location.toLowerCase().includes(query))
+        );
       }
 
       if(sorted.length === 0) {
@@ -181,32 +270,78 @@
         return;
       }
 
-      listEl.innerHTML = sorted.map(([id, data]) => `
-        <div class="item-card">
-          <div class="item-info">
-            <div class="item-name">
-              ${data.name}
-              ${data.qty === 0 ? '<span class="badge-out">품절</span>' : ''}
+      listEl.innerHTML = sorted.map(([id, data]) => {
+        const icon = getAutoIcon(data.name);
+        return `
+          <div class="item-card">
+            <div class="item-info" onclick="openEditModal('${id}')">
+              <div class="item-header">
+                <span class="item-icon">${icon}</span>
+                <span class="item-name">${data.name}</span>
+                ${data.location ? `<span class="item-loc">📍 ${data.location}</span>` : ''}
+                ${data.qty === 0 ? '<span class="badge-out">품절</span>' : ''}
+              </div>
+              <div class="item-date">최종 확인: ${data.date || getToday()}</div>
             </div>
-            <div class="item-date">최종 확인: ${data.date || getToday()}</div>
+            <div class="stepper">
+              <button class="step-btn" onclick="changeQty('${id}', -1)">-</button>
+              <span class="step-qty">${data.qty}</span>
+              <button class="step-btn" onclick="changeQty('${id}', 1)">+</button>
+            </div>
           </div>
-          <div class="stepper">
-            <button class="step-btn" onclick="changeQty('${id}', -1)">-</button>
-            <span class="step-qty">${data.qty}</span>
-            <button class="step-btn" onclick="changeQty('${id}', 1)">+</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function changeQty(id, delta) {
       if(!items[id]) return;
       const newQty = (items[id].qty || 0) + delta;
-      updateItem(id, items[id].name, newQty);
+      updateItem(id, items[id].name, newQty, items[id].location);
     }
 
     function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
     function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    function openEditModal(id) {
+      const item = items[id];
+      if(!item) return;
+      document.getElementById('editId').value = id;
+      document.getElementById('editName').value = item.name;
+      document.getElementById('editLocation').value = item.location || '';
+      document.getElementById('editQty').value = item.qty;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    async function saveEditItem() {
+      const id = document.getElementById('editId').value;
+      const name = document.getElementById('editName').value.trim();
+      const location = document.getElementById('editLocation').value.trim();
+      const qty = parseInt(document.getElementById('editQty').value, 10) || 0;
+
+      if(!name) {
+        alert("물품명을 입력해주세요.");
+        return;
+      }
+
+      await updateItem(id, name, qty, location);
+      closeEditModal();
+    }
+
+    async function deleteCurrentItem() {
+      const id = document.getElementById('editId').value;
+      if(confirm(`'${items[id].name}' 물품을 목록에서 삭제하시겠습니까?`)) {
+        delete items[id];
+        closeEditModal();
+        renderList();
+        updateLocationDatalist();
+
+        await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+          method: 'DELETE'
+        });
+      }
+    }
 
     loadData();
     setInterval(loadData, 4000);
