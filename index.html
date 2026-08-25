@@ -18,6 +18,7 @@
       --loc-bg: #f1f5f9;
       --loc-text: #475569;
       --danger: #ef4444;
+      --warn: #ea580c;
     }
     * { 
       box-sizing: border-box; 
@@ -31,27 +32,30 @@
     
     header {
       position: sticky; top: 0; background: var(--card); z-index: 10;
-      padding: 14px 16px; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; gap: 6px;
     }
-    header h1 { font-size: 17px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap; }
-    .header-btns { display: flex; gap: 6px; }
+    header h1 { font-size: 16px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap; }
+    .header-btns { display: flex; gap: 5px; }
     .btn-add {
       background: var(--primary); color: white; border: none;
-      padding: 7px 11px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;
+      padding: 6px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
     }
-    .btn-out-filter {
+    .btn-filter {
       background: #f1f5f9; color: var(--muted); border: 1px solid var(--border);
-      padding: 7px 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;
+      padding: 6px 8px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
     }
-    .btn-out-filter.active {
+    .btn-filter.active-out {
       background: #fee2e2; color: #b91c1c; border-color: #fca5a5;
     }
+    .btn-filter.active-urgent {
+      background: #ffedd5; color: #c2410c; border-color: #fdba74;
+    }
 
-    .search-box { padding: 12px 16px; background: var(--card); }
+    .search-box { padding: 10px 16px; background: var(--card); }
     .search-input {
-      width: 100%; padding: 10px 14px; border-radius: 10px;
-      border: 1px solid var(--border); font-size: 15px; outline: none; background: #f1f5f9;
+      width: 100%; padding: 9px 12px; border-radius: 10px;
+      border: 1px solid var(--border); font-size: 14px; outline: none; background: #f1f5f9;
     }
     .search-input:focus { border-color: var(--primary); background: #fff; }
 
@@ -60,27 +64,45 @@
       background: var(--card); border-radius: 12px; padding: 14px 16px;
       border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
       box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: background-color 0.2s, border-color 0.2s;
     }
-    .item-info { flex: 1; cursor: pointer; padding-right: 10px; }
-    .item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
-    .item-icon { font-size: 18px; line-height: 1; }
-    .item-name { font-size: 16px; font-weight: 600; color: var(--text); }
+    .item-card.urgent {
+      background-color: #fff7ed;
+      border-color: #fed7aa;
+    }
+    .item-info { flex: 1; cursor: pointer; padding-right: 8px; }
+    .item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+    .item-icon { font-size: 17px; line-height: 1; }
+    .item-name { font-size: 15px; font-weight: 600; color: var(--text); }
+    
+    /* 임박 스티커 */
+    .badge-urgent {
+      font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; cursor: pointer;
+      user-select: none; transition: all 0.15s ease;
+    }
+    .badge-urgent.off {
+      background: #e2e8f0; color: #94a3b8;
+    }
+    .badge-urgent.on {
+      background: #ea580c; color: #ffffff;
+    }
+
     .item-loc {
       font-size: 11px; background: var(--loc-bg); color: var(--loc-text);
-      padding: 2px 7px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px;
+      padding: 2px 6px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px;
     }
     .badge-out { font-size: 11px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
     .item-date { font-size: 12px; color: var(--muted); }
 
     .stepper { display: flex; align-items: center; gap: 8px; user-select: none; }
     .step-btn {
-      width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--border);
-      background: #f8fafc; font-size: 20px; font-weight: bold; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+      background: #f8fafc; font-size: 19px; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       touch-action: manipulation;
     }
     .step-btn:active { background: #e2e8f0; }
-    .step-qty { min-width: 28px; text-align: center; font-size: 17px; font-weight: 700; }
+    .step-qty { min-width: 26px; text-align: center; font-size: 16px; font-weight: 700; }
 
     /* Modal */
     .modal-overlay {
@@ -104,9 +126,10 @@
 <body>
 
   <header>
-    <h1>나봉❤️코봉 창고관리</h1>
+    <h1>나봉❤️코봉 창고</h1>
     <div class="header-btns">
-      <button class="btn-out-filter" id="outFilterBtn" onclick="toggleOutFilter()">품절보기</button>
+      <button class="btn-filter" id="urgentFilterBtn" onclick="toggleUrgentFilter()">임박(0)</button>
+      <button class="btn-filter" id="outFilterBtn" onclick="toggleOutFilter()">품절(0)</button>
       <button class="btn-add" onclick="openAddModal()">+ 추가</button>
     </div>
   </header>
@@ -137,7 +160,7 @@
     </div>
   </div>
 
-  <!-- 물품 수정 / 장소 변경 모달 -->
+  <!-- 물품 수정 모달 -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
       <h2>물품 정보 수정</h2>
@@ -157,13 +180,13 @@
     </div>
   </div>
 
-  <!-- 자동완성용 공통 장소 데이터리스트 -->
   <datalist id="locationList"></datalist>
 
   <script>
     const DB_URL = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items.json";
     let items = {};
     let isOnlyOutOfStock = false;
+    let isOnlyUrgent = false;
 
     function getAutoIcon(name) {
       const n = name.toLowerCase();
@@ -196,7 +219,7 @@
         const res = await fetch(DB_URL);
         items = await res.json() || {};
         updateLocationDatalist();
-        updateFilterButtonLabel();
+        updateFilterButtonLabels();
         renderList();
       } catch(e) {
         console.error("로드 실패:", e);
@@ -214,29 +237,63 @@
       dl.innerHTML = Array.from(locations).map(loc => `<option value="${loc}">`).join('');
     }
 
-    function updateFilterButtonLabel() {
+    function updateFilterButtonLabels() {
       const outCount = Object.values(items).filter(i => (i.qty || 0) === 0).length;
-      const btn = document.getElementById('outFilterBtn');
-      btn.innerText = `품절(${outCount})`;
+      const urgentCount = Object.values(items).filter(i => !!i.isUrgent).length;
+      
+      document.getElementById('outFilterBtn').innerText = `품절(${outCount})`;
+      document.getElementById('urgentFilterBtn').innerText = `임박(${urgentCount})`;
     }
 
     function toggleOutFilter() {
       isOnlyOutOfStock = !isOnlyOutOfStock;
-      const btn = document.getElementById('outFilterBtn');
-      if (isOnlyOutOfStock) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+      if (isOnlyOutOfStock) isOnlyUrgent = false; // 다른 필터 해제
+      applyFilterStyles();
       renderList();
     }
 
-    async function updateItem(id, name, qty, location) {
+    function toggleUrgentFilter() {
+      isOnlyUrgent = !isOnlyUrgent;
+      if (isOnlyUrgent) isOnlyOutOfStock = false; // 다른 필터 해제
+      applyFilterStyles();
+      renderList();
+    }
+
+    function applyFilterStyles() {
+      const outBtn = document.getElementById('outFilterBtn');
+      const urgentBtn = document.getElementById('urgentFilterBtn');
+
+      if (isOnlyOutOfStock) outBtn.classList.add('active-out');
+      else outBtn.classList.remove('active-out');
+
+      if (isOnlyUrgent) urgentBtn.classList.add('active-urgent');
+      else urgentBtn.classList.remove('active-urgent');
+    }
+
+    async function toggleUrgentStatus(id, event) {
+      event.stopPropagation(); // 카드 클릭(수정 모달) 방지
+      if(!items[id]) return;
+
+      const currentUrgent = !!items[id].isUrgent;
+      items[id].isUrgent = !currentUrgent;
+      
+      updateFilterButtonLabels();
+      renderList();
+
+      await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+        method: 'PUT',
+        body: JSON.stringify(items[id])
+      });
+    }
+
+    async function updateItem(id, name, qty, location, isUrgent) {
       if(qty < 0) qty = 0;
       const today = getToday();
       const loc = location !== undefined ? location : (items[id].location || '');
-      items[id] = { name: name, qty: qty, date: today, location: loc };
-      updateFilterButtonLabel();
+      const urgent = isUrgent !== undefined ? isUrgent : !!(items[id].isUrgent);
+
+      items[id] = { name: name, qty: qty, date: today, location: loc, isUrgent: urgent };
+      updateFilterButtonLabels();
       renderList();
       updateLocationDatalist();
 
@@ -269,9 +326,9 @@
       const id = 'item_' + Date.now();
       const today = getToday();
       
-      items[id] = { name: name, qty: qty, date: today, location: location };
+      items[id] = { name: name, qty: qty, date: today, location: location, isUrgent: false };
       closeAddModal();
-      updateFilterButtonLabel();
+      updateFilterButtonLabels();
       renderList();
       updateLocationDatalist();
 
@@ -293,6 +350,8 @@
 
       if(isOnlyOutOfStock) {
         sorted = sorted.filter(([id, data]) => (data.qty || 0) === 0);
+      } else if(isOnlyUrgent) {
+        sorted = sorted.filter(([id, data]) => !!data.isUrgent);
       }
 
       if(query) {
@@ -302,19 +361,23 @@
       }
 
       if(sorted.length === 0) {
-        const msg = isOnlyOutOfStock ? '품절된 물품이 없습니다. 🎉' : '등록된 물품이 없습니다.';
+        let msg = '등록된 물품이 없습니다.';
+        if (isOnlyOutOfStock) msg = '품절된 물품이 없습니다. 🎉';
+        if (isOnlyUrgent) msg = '임박 표시된 물품이 없습니다. ✨';
         listEl.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">${msg}</div>`;
         return;
       }
 
       listEl.innerHTML = sorted.map(([id, data]) => {
         const icon = getAutoIcon(data.name);
+        const isUrgent = !!data.isUrgent;
         return `
-          <div class="item-card">
+          <div class="item-card ${isUrgent ? 'urgent' : ''}">
             <div class="item-info" onclick="openEditModal('${id}')">
               <div class="item-header">
                 <span class="item-icon">${icon}</span>
                 <span class="item-name">${data.name}</span>
+                <span class="badge-urgent ${isUrgent ? 'on' : 'off'}" onclick="toggleUrgentStatus('${id}', event)">임박</span>
                 ${data.location ? `<span class="item-loc">📍 ${data.location}</span>` : ''}
                 ${data.qty === 0 ? '<span class="badge-out">품절</span>' : ''}
               </div>
@@ -333,7 +396,7 @@
     function changeQty(id, delta) {
       if(!items[id]) return;
       const newQty = (items[id].qty || 0) + delta;
-      updateItem(id, items[id].name, newQty, items[id].location);
+      updateItem(id, items[id].name, newQty, items[id].location, items[id].isUrgent);
     }
 
     function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
@@ -362,7 +425,7 @@
         return;
       }
 
-      await updateItem(id, name, qty, location);
+      await updateItem(id, name, qty, location, items[id].isUrgent);
       closeEditModal();
     }
 
@@ -371,7 +434,7 @@
       if(confirm(`'${items[id].name}' 물품을 목록에서 삭제하시겠습니까?`)) {
         delete items[id];
         closeEditModal();
-        updateFilterButtonLabel();
+        updateFilterButtonLabels();
         renderList();
         updateLocationDatalist();
 
