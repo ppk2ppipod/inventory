@@ -28,29 +28,34 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
     
     header {
       position: sticky; top: 0; background: var(--card); z-index: 10;
-      padding: 12px 16px; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; gap: 6px;
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; gap: 4px;
     }
-    header h1 { font-size: 16px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap; }
-    .header-btns { display: flex; gap: 5px; }
+    header h1 { font-size: 15px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap; }
+    .header-btns { display: flex; gap: 4px; align-items: center; }
     .btn-add {
       background: var(--primary); color: white; border: none;
-      padding: 6px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
+      padding: 6px 9px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
     }
-    .btn-filter {
+    .btn-undo {
       background: #f1f5f9; color: var(--muted); border: 1px solid var(--border);
       padding: 6px 8px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
+      opacity: 0.4; pointer-events: none; transition: all 0.2s ease;
     }
-    .btn-filter.active-out {
-      background: #fee2e2; color: #b91c1c; border-color: #fca5a5;
+    .btn-undo.enabled {
+      opacity: 1; pointer-events: auto; color: #1e293b; background: #ffffff; border-color: #cbd5e1;
     }
-    .btn-filter.active-urgent {
-      background: #ffedd5; color: #c2410c; border-color: #fdba74;
+    .btn-undo.enabled:active { background: #e2e8f0; }
+    .btn-filter {
+      background: #f1f5f9; color: var(--muted); border: 1px solid var(--border);
+      padding: 6px 7px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
     }
+    .btn-filter.active-out { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+    .btn-filter.active-urgent { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
 
     .search-box { padding: 10px 16px; background: var(--card); }
     .search-input {
@@ -63,33 +68,21 @@
     .item-card {
       background: var(--card); border-radius: 12px; padding: 14px 16px;
       border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-      transition: background-color 0.2s, border-color 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03); transition: 0.2s;
     }
-    .item-card.urgent {
-      background-color: #fff7ed;
-      border-color: #fed7aa;
-    }
+    .item-card.urgent { background-color: #fff7ed; border-color: #fed7aa; }
     .item-info { flex: 1; cursor: pointer; padding-right: 8px; }
     .item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
     .item-icon { font-size: 17px; line-height: 1; }
     .item-name { font-size: 15px; font-weight: 600; color: var(--text); }
-    
-    /* 임박 스티커 */
     .badge-urgent {
-      font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; cursor: pointer;
-      user-select: none; transition: all 0.15s ease;
+      font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; cursor: pointer; user-select: none;
     }
-    .badge-urgent.off {
-      background: #e2e8f0; color: #94a3b8;
-    }
-    .badge-urgent.on {
-      background: #ea580c; color: #ffffff;
-    }
-
+    .badge-urgent.off { background: #e2e8f0; color: #94a3b8; }
+    .badge-urgent.on { background: #ea580c; color: #ffffff; }
     .item-loc {
       font-size: 11px; background: var(--loc-bg); color: var(--loc-text);
-      padding: 2px 6px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px;
+      padding: 2px 6px; border-radius: 6px; font-weight: 500;
     }
     .badge-out { font-size: 11px; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
     .item-date { font-size: 12px; color: var(--muted); }
@@ -99,50 +92,103 @@
       width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
       background: #f8fafc; font-size: 19px; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      touch-action: manipulation;
     }
     .step-btn:active { background: #e2e8f0; }
     .step-qty { min-width: 26px; text-align: center; font-size: 16px; font-weight: 700; }
 
-    /* Modal */
+    /* 식단표 UI */
+    .meal-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .day-card {
+      background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+      padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .day-title { font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 10px; }
+    .meal-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-top: 1px solid #f1f5f9; gap: 8px;
+    }
+    .meal-type { font-size: 12px; font-weight: 700; color: var(--muted); width: 32px; }
+    .meal-name { font-size: 14px; font-weight: 600; flex: 1; cursor: pointer; }
+    .meal-btns { display: flex; gap: 6px; }
+    .meal-btn {
+      padding: 5px 9px; font-size: 11px; font-weight: 600; border-radius: 6px;
+      border: 1px solid var(--border); background: #f8fafc; cursor: pointer;
+    }
+    .meal-btn:active { background: #e2e8f0; }
+
+    /* 바텀 네비게이션 */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; max-width: 600px; margin: 0 auto;
+      height: 60px; background: var(--card); border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; align-items: center; z-index: 20;
+    }
+    .nav-btn {
+      flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; border: none; background: none; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer;
+    }
+    .nav-btn.active { color: var(--primary); }
+    .nav-icon { font-size: 18px; }
+
+    /* 모달 */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.5);
       display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100;
     }
-    .modal { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 340px; }
-    .modal h2 { font-size: 18px; margin-bottom: 14px; }
+    .modal { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto; }
+    .modal h2 { font-size: 17px; margin-bottom: 14px; }
     .modal label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; display: block; }
-    .modal input { 
-      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; font-size: 15px; outline: none;
+    .modal input, .modal textarea { 
+      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none;
     }
-    .modal input:focus { border-color: var(--primary); }
+    .modal textarea { height: 75px; resize: none; }
     .modal-btns { display: flex; gap: 8px; margin-top: 10px; }
     .modal-btns button { flex: 1; padding: 11px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; font-size: 14px; }
     .btn-confirm { background: var(--primary); color: white; }
     .btn-cancel { background: #f1f5f9; color: var(--text); }
     .btn-delete { background: #fee2e2; color: #b91c1c; }
+    .content-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; margin-bottom: 14px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>나봉❤️코봉 창고</h1>
-    <div class="header-btns">
+  <header id="mainHeader">
+    <h1 id="appTitle">나봉❤️코봉 창고</h1>
+    <div class="header-btns" id="inventoryHeaderBtns">
+      <button class="btn-undo" id="undoBtn" onclick="performUndo()">↩ 되돌리기</button>
       <button class="btn-filter" id="urgentFilterBtn" onclick="toggleUrgentFilter()">임박(0)</button>
       <button class="btn-filter" id="outFilterBtn" onclick="toggleOutFilter()">품절(0)</button>
       <button class="btn-add" onclick="openAddModal()">+ 추가</button>
     </div>
   </header>
 
-  <div class="search-box">
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 물품명/장소 검색 (가나다순)" oninput="renderList()">
+  <!-- 재고 뷰 -->
+  <div id="inventoryView">
+    <div class="search-box">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 물품명/장소 검색 (가나다순)" oninput="renderList()">
+    </div>
+    <div class="item-list" id="itemList">
+      <div style="text-align:center; padding: 40px; color: var(--muted);">데이터를 불러오는 중...</div>
+    </div>
   </div>
 
-  <div class="item-list" id="itemList">
-    <div style="text-align:center; padding: 40px; color: var(--muted);">데이터를 불러오는 중...</div>
+  <!-- 식단표 뷰 -->
+  <div id="mealView" style="display: none;">
+    <div class="meal-list" id="mealList"></div>
   </div>
 
-  <!-- 물품 등록 모달 -->
+  <!-- 바텀 네비게이션 -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="tabInv" onclick="switchTab('inv')">
+      <span class="nav-icon">📦</span>
+      <span>창고재고</span>
+    </button>
+    <button class="nav-btn" id="tabMeal" onclick="switchTab('meal')">
+      <span class="nav-icon">📅</span>
+      <span>주간식단</span>
+    </button>
+  </nav>
+
+  <!-- 재고 등록 모달 -->
   <div class="modal-overlay" id="addModal">
     <div class="modal">
       <h2>새 물품 등록</h2>
@@ -152,7 +198,6 @@
       <input type="text" id="newLocation" list="locationList" placeholder="예: 팬트리 2단, 안방 서랍">
       <label>초기 수량</label>
       <input type="number" id="newQty" value="1" min="0">
-      
       <div class="modal-btns">
         <button class="btn-cancel" onclick="closeAddModal()">취소</button>
         <button class="btn-confirm" onclick="addItem()">등록</button>
@@ -160,7 +205,7 @@
     </div>
   </div>
 
-  <!-- 물품 수정 모달 -->
+  <!-- 재고 수정 모달 -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
       <h2>물품 정보 수정</h2>
@@ -168,10 +213,9 @@
       <label>물품명</label>
       <input type="text" id="editName">
       <label>보관 장소</label>
-      <input type="text" id="editLocation" list="locationList" placeholder="보관 장소를 입력하세요">
+      <input type="text" id="editLocation" list="locationList">
       <label>수량</label>
       <input type="number" id="editQty" min="0">
-      
       <div class="modal-btns">
         <button class="btn-delete" onclick="deleteCurrentItem()">삭제</button>
         <button class="btn-cancel" onclick="closeEditModal()">취소</button>
@@ -180,13 +224,119 @@
     </div>
   </div>
 
+  <!-- 식단 수정 모달 -->
+  <div class="modal-overlay" id="mealEditModal">
+    <div class="modal">
+      <h2 id="mealEditTitle">식단 메뉴 입력</h2>
+      <input type="hidden" id="mealEditDay">
+      <input type="hidden" id="mealEditType">
+      <label>메뉴명</label>
+      <input type="text" id="mealEditName" placeholder="예: 김치찌개, 제육볶음">
+      <label>필요 재료</label>
+      <textarea id="mealEditIngredients" placeholder="필요한 재료를 적어주세요"></textarea>
+      <label>레시피</label>
+      <textarea id="mealEditRecipe" style="height: 100px;" placeholder="조리 순서를 적어주세요"></textarea>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeMealEditModal()">취소</button>
+        <button class="btn-confirm" onclick="saveMealEdit()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상세 조회 팝업 (재료 / 레시피 전용) -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <h2 id="detailTitle">상세 보기</h2>
+      <div class="content-box" id="detailContent"></div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeDetailModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <datalist id="locationList"></datalist>
 
   <script>
-    const DB_URL = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items.json";
+    const DB_BASE = "https://my-home-inventory-579bb-default-rtdb.firebaseio.com";
     let items = {};
+    let meals = {};
     let isOnlyOutOfStock = false;
     let isOnlyUrgent = false;
+
+    // 되돌리기 작업 히스토리 스택 (최대 20개 저장)
+    const undoStack = [];
+
+    function pushUndo(action) {
+      undoStack.push(action);
+      if (undoStack.length > 20) undoStack.shift();
+      updateUndoButtonState();
+    }
+
+    function updateUndoButtonState() {
+      const btn = document.getElementById('undoBtn');
+      if (!btn) return;
+      if (undoStack.length > 0) {
+        btn.classList.add('enabled');
+        btn.innerText = `↩ 되돌리기(${undoStack.length})`;
+      } else {
+        btn.classList.remove('enabled');
+        btn.innerText = `↩ 되돌리기`;
+      }
+    }
+
+    async function performUndo() {
+      if (undoStack.length === 0) return;
+      const action = undoStack.pop();
+      updateUndoButtonState();
+
+      if (action.type === 'update') {
+        items[action.id] = action.prev;
+        await fetch(`${DB_BASE}/items/${action.id}.json`, {
+          method: 'PUT',
+          body: JSON.stringify(action.prev)
+        });
+      } else if (action.type === 'add') {
+        // 추가했던 물품 취소(삭제)
+        delete items[action.id];
+        await fetch(`${DB_BASE}/items/${action.id}.json`, { method: 'DELETE' });
+      } else if (action.type === 'delete') {
+        // 삭제했던 물품 원복
+        items[action.id] = action.prev;
+        await fetch(`${DB_BASE}/items/${action.id}.json`, {
+          method: 'PUT',
+          body: JSON.stringify(action.prev)
+        });
+      }
+
+      updateLocationDatalist();
+      updateFilterButtonLabels();
+      renderList();
+    }
+
+    const DAYS = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+
+    const RECIPE_PRESETS = {
+      '김치찌개': {
+        ing: '돼지고기(목살/삼겹살), 신김치, 두부, 대파, 다진마늘, 고춧가루, 국간장',
+        recipe: '1. 냄비에 돼지고기와 김치를 볶아 기름을 낸다.\n2. 물 또는 멸치육수를 붓고 끓인다.\n3. 다진마늘 1스푼, 국간장으로 간을 맞춘다.\n4. 두부와 송송 썬 대파를 넣고 5분간 더 끓여 완성한다.'
+      },
+      '된장찌개': {
+        ing: '된장 2스푼, 두부, 애호박, 양파, 대파, 다진마늘, 표고버섯(선택)',
+        recipe: '1. 멸치 다시마 육수에 된장을 풀어 끓인다.\n2. 애호박, 양파, 버섯을 깍둑썰기해 넣는다.\n3. 다진마늘을 넣고 채소가 익을 때까지 끓인다.\n4. 두부와 대파를 넣고 한소끔 끓여 마무리한다.'
+      },
+      '제육볶음': {
+        ing: '돼지고기 앞다리살, 양파, 대파, 고추장 2, 고춧가루 2, 간장 2, 설탕 1.5, 다진마늘 1, 참기름',
+        recipe: '1. 고추장, 고춧가루, 간장, 설탕, 마늘을 섞어 양념장을 만든다.\n2. 고기에 양념을 버무려 10분간 재워둔다.\n3. 달군 팬에 고기를 센 불로 볶다가 양파를 넣는다.\n4. 고기가 익으면 대파와 참기름을 두르고 불을 끈다.'
+      },
+      '미역국': {
+        ing: '마른미역, 소고기(양지), 참기름 2스푼, 국간장 2스푼, 다진마늘, 멸치액젓',
+        recipe: '1. 불린 미역과 소고기를 참기름에 달달 볶는다.\n2. 물을 붓고 센 불에서 끓이다가 약불로 줄여 20분 이상 푹 끓인다.\n3. 국간장, 액젓, 다진마늘로 간을 맞춘다.'
+      },
+      '파스타': {
+        ing: '스파게티면, 마늘, 올리브유, 페페론치노, 베이컨 또는 새우, 소금',
+        recipe: '1. 끓는 물에 소금을 넣고 면을 8분간 삶는다.\n2. 팬에 올리브유를 넉넉히 두르고 마늘, 페페론치노를 볶는다.\n3. 삶은 면과 면수 1국자를 팬에 넣고 유화시키며 볶는다.\n4. 소금으로 간을 하고 올리브유를 살짝 둘러 완성한다.'
+      }
+    };
 
     function getAutoIcon(name) {
       const n = name.toLowerCase();
@@ -208,53 +358,78 @@
 
     function getToday() {
       const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}.${mm}.${dd}`;
+      return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function switchTab(tab) {
+      const invView = document.getElementById('inventoryView');
+      const mealView = document.getElementById('mealView');
+      const invBtns = document.getElementById('inventoryHeaderBtns');
+      const appTitle = document.getElementById('appTitle');
+      const tabInv = document.getElementById('tabInv');
+      const tabMeal = document.getElementById('tabMeal');
+
+      if (tab === 'inv') {
+        invView.style.display = 'block';
+        mealView.style.display = 'none';
+        invBtns.style.display = 'flex';
+        appTitle.innerText = '나봉❤️코봉 창고';
+        tabInv.classList.add('active');
+        tabMeal.classList.remove('active');
+      } else {
+        invView.style.display = 'none';
+        mealView.style.display = 'block';
+        invBtns.style.display = 'none';
+        appTitle.innerText = '📅 이번 주 식단표';
+        tabMeal.classList.add('active');
+        tabInv.classList.remove('active');
+        renderMeals();
+      }
     }
 
     async function loadData() {
       try {
-        const res = await fetch(DB_URL);
-        items = await res.json() || {};
+        const [resInv, resMeal] = await Promise.all([
+          fetch(`${DB_BASE}/items.json`),
+          fetch(`${DB_BASE}/meals.json`)
+        ]);
+        items = await resInv.json() || {};
+        meals = await resMeal.json() || {};
+        
         updateLocationDatalist();
         updateFilterButtonLabels();
         renderList();
+        renderMeals();
       } catch(e) {
-        console.error("로드 실패:", e);
+        console.error("데이터 로드 실패:", e);
       }
     }
 
     function updateLocationDatalist() {
       const locations = new Set();
       Object.values(items).forEach(item => {
-        if (item.location && item.location.trim()) {
-          locations.add(item.location.trim());
-        }
+        if (item && item.location && item.location.trim()) locations.add(item.location.trim());
       });
-      const dl = document.getElementById('locationList');
-      dl.innerHTML = Array.from(locations).map(loc => `<option value="${loc}">`).join('');
+      document.getElementById('locationList').innerHTML = Array.from(locations).map(l => `<option value="${l}">`).join('');
     }
 
     function updateFilterButtonLabels() {
       const outCount = Object.values(items).filter(i => (i.qty || 0) === 0).length;
       const urgentCount = Object.values(items).filter(i => !!i.isUrgent).length;
-      
       document.getElementById('outFilterBtn').innerText = `품절(${outCount})`;
       document.getElementById('urgentFilterBtn').innerText = `임박(${urgentCount})`;
     }
 
     function toggleOutFilter() {
       isOnlyOutOfStock = !isOnlyOutOfStock;
-      if (isOnlyOutOfStock) isOnlyUrgent = false; // 다른 필터 해제
+      if (isOnlyOutOfStock) isOnlyUrgent = false;
       applyFilterStyles();
       renderList();
     }
 
     function toggleUrgentFilter() {
       isOnlyUrgent = !isOnlyUrgent;
-      if (isOnlyUrgent) isOnlyOutOfStock = false; // 다른 필터 해제
+      if (isOnlyUrgent) isOnlyOutOfStock = false;
       applyFilterStyles();
       renderList();
     }
@@ -262,42 +437,44 @@
     function applyFilterStyles() {
       const outBtn = document.getElementById('outFilterBtn');
       const urgentBtn = document.getElementById('urgentFilterBtn');
-
-      if (isOnlyOutOfStock) outBtn.classList.add('active-out');
-      else outBtn.classList.remove('active-out');
-
-      if (isOnlyUrgent) urgentBtn.classList.add('active-urgent');
-      else urgentBtn.classList.remove('active-urgent');
+      outBtn.classList.toggle('active-out', isOnlyOutOfStock);
+      urgentBtn.classList.toggle('active-urgent', isOnlyUrgent);
     }
 
     async function toggleUrgentStatus(id, event) {
-      event.stopPropagation(); // 카드 클릭(수정 모달) 방지
+      event.stopPropagation();
       if(!items[id]) return;
 
-      const currentUrgent = !!items[id].isUrgent;
-      items[id].isUrgent = !currentUrgent;
-      
+      // 작업 히스토리 저장
+      pushUndo({ type: 'update', id, prev: { ...items[id] } });
+
+      items[id].isUrgent = !items[id].isUrgent;
       updateFilterButtonLabels();
       renderList();
 
-      await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+      await fetch(`${DB_BASE}/items/${id}.json`, {
         method: 'PUT',
         body: JSON.stringify(items[id])
       });
     }
 
     async function updateItem(id, name, qty, location, isUrgent) {
+      if(!items[id]) return;
       if(qty < 0) qty = 0;
+
+      // 작업 히스토리 저장
+      pushUndo({ type: 'update', id, prev: { ...items[id] } });
+
       const today = getToday();
       const loc = location !== undefined ? location : (items[id].location || '');
       const urgent = isUrgent !== undefined ? isUrgent : !!(items[id].isUrgent);
 
-      items[id] = { name: name, qty: qty, date: today, location: loc, isUrgent: urgent };
+      items[id] = { name, qty, date: today, location: loc, isUrgent: urgent };
       updateFilterButtonLabels();
       renderList();
       updateLocationDatalist();
 
-      await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+      await fetch(`${DB_BASE}/items/${id}.json`, {
         method: 'PUT',
         body: JSON.stringify(items[id])
       });
@@ -307,34 +484,30 @@
       const nameInput = document.getElementById('newName');
       const qtyInput = document.getElementById('newQty');
       const locInput = document.getElementById('newLocation');
-      
       const name = nameInput.value.trim();
       const qty = parseInt(qtyInput.value, 10) || 0;
       const location = locInput.value.trim();
 
-      if(!name) {
-        alert("물품명을 입력해주세요.");
-        return;
-      }
+      if(!name) return alert("물품명을 입력해주세요.");
 
       const exists = Object.values(items).some(i => i.name.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, ''));
-      if(exists) {
-        alert(`'${name}'은(는) 이미 등록되어 있는 물품입니다!`);
-        return;
-      }
+      if(exists) return alert(`'${name}'은(는) 이미 등록되어 있는 물품입니다!`);
 
       const id = 'item_' + Date.now();
-      const today = getToday();
-      
-      items[id] = { name: name, qty: qty, date: today, location: location, isUrgent: false };
+      const newItem = { name, qty, date: getToday(), location, isUrgent: false };
+      items[id] = newItem;
+
+      // 작업 히스토리 저장
+      pushUndo({ type: 'add', id });
+
       closeAddModal();
       updateFilterButtonLabels();
       renderList();
       updateLocationDatalist();
 
-      await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
+      await fetch(`${DB_BASE}/items/${id}.json`, {
         method: 'PUT',
-        body: JSON.stringify(items[id])
+        body: JSON.stringify(newItem)
       });
 
       nameInput.value = '';
@@ -345,14 +518,10 @@
     function renderList() {
       const listEl = document.getElementById('itemList');
       const query = document.getElementById('searchInput').value.trim().toLowerCase();
-
       let sorted = Object.entries(items).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'));
 
-      if(isOnlyOutOfStock) {
-        sorted = sorted.filter(([id, data]) => (data.qty || 0) === 0);
-      } else if(isOnlyUrgent) {
-        sorted = sorted.filter(([id, data]) => !!data.isUrgent);
-      }
+      if(isOnlyOutOfStock) sorted = sorted.filter(([id, data]) => (data.qty || 0) === 0);
+      else if(isOnlyUrgent) sorted = sorted.filter(([id, data]) => !!data.isUrgent);
 
       if(query) {
         sorted = sorted.filter(([id, data]) => 
@@ -361,9 +530,7 @@
       }
 
       if(sorted.length === 0) {
-        let msg = '등록된 물품이 없습니다.';
-        if (isOnlyOutOfStock) msg = '품절된 물품이 없습니다. 🎉';
-        if (isOnlyUrgent) msg = '임박 표시된 물품이 없습니다. ✨';
+        const msg = isOnlyOutOfStock ? '품절된 물품이 없습니다. 🎉' : (isOnlyUrgent ? '임박 표시된 물품이 없습니다. ✨' : '등록된 물품이 없습니다.');
         listEl.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">${msg}</div>`;
         return;
       }
@@ -395,9 +562,104 @@
 
     function changeQty(id, delta) {
       if(!items[id]) return;
-      const newQty = (items[id].qty || 0) + delta;
-      updateItem(id, items[id].name, newQty, items[id].location, items[id].isUrgent);
+      updateItem(id, items[id].name, (items[id].qty || 0) + delta, items[id].location, items[id].isUrgent);
     }
+
+    function renderMeals() {
+      const mealEl = document.getElementById('mealList');
+      mealEl.innerHTML = DAYS.map(day => {
+        const dData = meals[day] || {};
+        const lunch = dData.lunch || { name: '', ing: '', recipe: '' };
+        const dinner = dData.dinner || { name: '', ing: '', recipe: '' };
+
+        return `
+          <div class="day-card">
+            <div class="day-title">
+              <span>🗓️ ${day}</span>
+            </div>
+            <div class="meal-row">
+              <span class="meal-type">점심</span>
+              <span class="meal-name" onclick="openMealEditModal('${day}', 'lunch')">${lunch.name ? lunch.name : '<span style="color:#94a3b8;">메뉴를 입력하세요</span>'}</span>
+              ${lunch.name ? `
+                <div class="meal-btns">
+                  <button class="meal-btn" onclick="showDetail('${lunch.name} - 필요 재료', '${escapeQuotes(lunch.ing)}')">재료</button>
+                  <button class="meal-btn" onclick="showDetail('${lunch.name} - 레시피', '${escapeQuotes(lunch.recipe)}')">레시피</button>
+                </div>
+              ` : ''}
+            </div>
+            <div class="meal-row">
+              <span class="meal-type">저녁</span>
+              <span class="meal-name" onclick="openMealEditModal('${day}', 'dinner')">${dinner.name ? dinner.name : '<span style="color:#94a3b8;">메뉴를 입력하세요</span>'}</span>
+              ${dinner.name ? `
+                <div class="meal-btns">
+                  <button class="meal-btn" onclick="showDetail('${dinner.name} - 필요 재료', '${escapeQuotes(dinner.ing)}')">재료</button>
+                  <button class="meal-btn" onclick="showDetail('${dinner.name} - 레시피', '${escapeQuotes(dinner.recipe)}')">레시피</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeQuotes(str) {
+      if(!str) return '';
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+    }
+
+    function openMealEditModal(day, type) {
+      document.getElementById('mealEditDay').value = day;
+      document.getElementById('mealEditType').value = type;
+      document.getElementById('mealEditTitle').innerText = `${day} ${type === 'lunch' ? '점심' : '저녁'} 메뉴`;
+
+      const current = (meals[day] && meals[day][type]) ? meals[day][type] : { name: '', ing: '', recipe: '' };
+      const nameInput = document.getElementById('mealEditName');
+      nameInput.value = current.name || '';
+      document.getElementById('mealEditIngredients').value = current.ing || '';
+      document.getElementById('mealEditRecipe').value = current.recipe || '';
+
+      nameInput.oninput = function() {
+        const val = this.value.trim();
+        for (const [presetKey, presetData] of Object.entries(RECIPE_PRESETS)) {
+          if (val.includes(presetKey)) {
+            if(!document.getElementById('mealEditIngredients').value) document.getElementById('mealEditIngredients').value = presetData.ing;
+            if(!document.getElementById('mealEditRecipe').value) document.getElementById('mealEditRecipe').value = presetData.recipe;
+            break;
+          }
+        }
+      };
+
+      document.getElementById('mealEditModal').style.display = 'flex';
+    }
+
+    function closeMealEditModal() { document.getElementById('mealEditModal').style.display = 'none'; }
+
+    async function saveMealEdit() {
+      const day = document.getElementById('mealEditDay').value;
+      const type = document.getElementById('mealEditType').value;
+      const name = document.getElementById('mealEditName').value.trim();
+      const ing = document.getElementById('mealEditIngredients').value.trim();
+      const recipe = document.getElementById('mealEditRecipe').value.trim();
+
+      if(!meals[day]) meals[day] = {};
+      meals[day][type] = { name, ing, recipe };
+
+      closeMealEditModal();
+      renderMeals();
+
+      await fetch(`${DB_BASE}/meals/${day}/${type}.json`, {
+        method: 'PUT',
+        body: JSON.stringify(meals[day][type])
+      });
+    }
+
+    function showDetail(title, content) {
+      document.getElementById('detailTitle').innerText = title;
+      document.getElementById('detailContent').innerText = content ? content.replace(/\\n/g, '\n') : '등록된 내용이 없습니다.';
+      document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
 
     function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
     function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
@@ -411,7 +673,6 @@
       document.getElementById('editQty').value = item.qty;
       document.getElementById('editModal').style.display = 'flex';
     }
-
     function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
     async function saveEditItem() {
@@ -419,28 +680,21 @@
       const name = document.getElementById('editName').value.trim();
       const location = document.getElementById('editLocation').value.trim();
       const qty = parseInt(document.getElementById('editQty').value, 10) || 0;
-
-      if(!name) {
-        alert("물품명을 입력해주세요.");
-        return;
-      }
-
+      if(!name) return alert("물품명을 입력해주세요.");
       await updateItem(id, name, qty, location, items[id].isUrgent);
       closeEditModal();
     }
 
     async function deleteCurrentItem() {
       const id = document.getElementById('editId').value;
-      if(confirm(`'${items[id].name}' 물품을 목록에서 삭제하시겠습니까?`)) {
+      if(confirm(`'${items[id].name}' 물품을 삭제하시겠습니까?`)) {
+        pushUndo({ type: 'delete', id, prev: { ...items[id] } });
         delete items[id];
         closeEditModal();
         updateFilterButtonLabels();
         renderList();
         updateLocationDatalist();
-
-        await fetch(`https://my-home-inventory-579bb-default-rtdb.firebaseio.com/items/${id}.json`, {
-          method: 'DELETE'
-        });
+        await fetch(`${DB_BASE}/items/${id}.json`, { method: 'DELETE' });
       }
     }
 
